@@ -2,10 +2,8 @@ name: PR Workflow
 
 on:
   pull_request:
-    types: [opened, synchronize]
-    branches:
-      - develop
-
+    types: [opened, synchronize, reopened]
+    
 jobs:
   pr_workflow:
     runs-on: ubuntu-latest
