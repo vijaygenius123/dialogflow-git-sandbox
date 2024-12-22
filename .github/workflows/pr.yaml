@@ -2,7 +2,7 @@ name: PR Workflow
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, closed, edited]
     branches:
       - '**'
   push:
@@ -30,11 +30,15 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const issue_number = context.payload.pull_request.number;
-            const message = `Workflow completed with status: ${context.job.status}`;
-            github.rest.issues.createComment({
-              issue_number: issue_number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: message
-            });
+            if (context.payload.pull_request) {
+              const issue_number = context.payload.pull_request.number;
+              const message = `Workflow completed with status: ${context.job.status}`;
+              github.rest.issues.createComment({
+                issue_number: issue_number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: message
+              });
+            } else {
+              console.log("No pull request context available.");
+            }
