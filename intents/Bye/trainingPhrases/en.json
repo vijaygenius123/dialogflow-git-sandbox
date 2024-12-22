@@ -1,6 +1,24 @@
 {
   "trainingPhrases": [ {
     "parts": [ {
+      "text": "Have a good one"
+    } ],
+    "repeatCount": 1,
+    "languageCode": "en"
+  }, {
+    "parts": [ {
+      "text": "Catch you later"
+    } ],
+    "repeatCount": 1,
+    "languageCode": "en"
+  }, {
+    "parts": [ {
+      "text": "See you later, alligator"
+    } ],
+    "repeatCount": 1,
+    "languageCode": "en"
+  }, {
+    "parts": [ {
       "text": "Good Bye",
       "auto": true
     } ],
