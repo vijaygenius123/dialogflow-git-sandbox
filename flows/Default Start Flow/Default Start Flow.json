@@ -13,6 +13,13 @@
       } ]
     },
     "name": "a37432d1-df93-46bf-b738-9a7aff5f90ce"
+  }, {
+    "intent": "Bye",
+    "triggerFulfillment": {
+    
+    },
+    "targetPage": "End Session",
+    "name": "0d557472-ed6a-4ef4-9bbe-e47f6ccf0b90"
   } ],
   "eventHandlers": [ {
     "event": "sys.no-match-default",
@@ -40,5 +47,11 @@
   "nluSettings": {
     "modelType": "MODEL_TYPE_ADVANCED",
     "classificationThreshold": 0.30000001
-  }
+  },
+  "nluSettingsList": [ {
+    "modelType": "MODEL_TYPE_ADVANCED",
+    "classificationThreshold": 0.30000001,
+    "customConfigKey": "56444246-facf-43c9-8ed9-bc56280231d2",
+    "languageCode": "en"
+  } ]
 }
