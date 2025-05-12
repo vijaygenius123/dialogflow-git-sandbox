@@ -1,44 +1,57 @@
-name: PR Workflow
+name: Production Deployment
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, closed, edited]
-    branches:
-      - '**'
-  push:
-    branches:
-      - '**'
-    
+  release:
+    types: [published]
+
 jobs:
-  pr_workflow:
+  deploy_to_production:
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Example Step
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          
+      - name: Install cxcli
+        run: npm install -g @xavidop/dialogflow-cx-cli
+        
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          service_account_key: ${{ secrets.GOOGLE_CREDENTIALS }}
+          export_default_credentials: true
+          
+      - name: Deploy to Production
         run: |
-          echo "PR was created or updated"
-          echo "PR number: ${{ github.event.pull_request.number }}"
-          echo "PR title: ${{ github.event.pull_request.title }}"
-
-      # Add your additional workflow steps here
-      
-      - name: Notify PR status
-        if: always()
+          VERSION_ID=$(cxcli version create --project-id ${{ secrets.PRD_PROJECT_ID }} --location-id ${{ secrets.LOCATION_ID }} --agent-id ${{ secrets.PRD_AGENT_ID }} --display-name "Release-${{ github.event.release.tag_name }}")
+          
+          if [[ -n "$VERSION_ID" ]]; then
+            cxcli environment update --project-id ${{ secrets.PRD_PROJECT_ID }} --location-id ${{ secrets.LOCATION_ID }} --agent-id ${{ secrets.PRD_AGENT_ID }} --environment-id ${{ secrets.PRD_ENV_ID }} --version-id $VERSION_ID
+            
+            echo "Deployed version $VERSION_ID to production environment"
+          else
+            echo "Failed to create version"
+            exit 1
+          fi
+          
+      - name: Create Deployment Comment
         uses: actions/github-script@v6
         with:
           script: |
-            if (context.payload.pull_request) {
-              const issue_number = context.payload.pull_request.number;
-              const message = `Workflow completed with status: ${context.job.status}`;
-              github.rest.issues.createComment({
-                issue_number: issue_number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: message
-              });
-            } else {
-              console.log("No pull request context available.");
-            }
+            const releaseId = context.payload.release.id;
+            const message = `✅ Dialogflow CX agent has been deployed to production environment.`;
+            
+            await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.payload.release.tag_name,
+              environment: 'production',
+              auto_merge: false,
+              required_contexts: [],
+              description: message
+            });
