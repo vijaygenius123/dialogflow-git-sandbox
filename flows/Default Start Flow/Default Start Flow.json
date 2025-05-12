@@ -20,6 +20,13 @@
     },
     "targetPage": "End Session",
     "name": "0d557472-ed6a-4ef4-9bbe-e47f6ccf0b90"
+  }, {
+    "intent": "Start",
+    "triggerFulfillment": {
+    
+    },
+    "targetPage": "Debug",
+    "name": "d6fc5179-49c4-4f97-a3df-cf69c9cfa7df"
   } ],
   "eventHandlers": [ {
     "event": "sys.no-match-default",

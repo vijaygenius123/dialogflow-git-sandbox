@@ -58,6 +58,9 @@
     }, {
       "category": "HATE_SPEECH",
       "filterLevel": "MODERATE_BLOCKING"
+    } ],
+    "promptSecuritySettings": {
+    }
     } ]
   },
   "languageCode": "en",
@@ -68,5 +71,11 @@
   },
   "llmModelSettings": {
     "model": "gemini-1.5-flash"
+  },
+  "playbookSettings": {
+    "memoryRetentionSettings": {
+    
+    }
+
   }
 }
