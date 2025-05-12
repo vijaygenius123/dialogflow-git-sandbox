@@ -8,7 +8,21 @@ jobs:
       - checkout
       - run:
           command: "echo \"Hello from CircleCI! Branch: $CIRCLE_BRANCH, PR: $CIRCLE_PULL_REQUEST\""
-
+      - run:
+          name: Trigger GitHub Action
+          command: |
+            curl -X POST \
+              -H "Authorization: token $GH_PAT" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/vijaygenius123/dialogflow-git-sandbox/dispatches" \
+              -d '{
+                "event_type": "circleci_completed",
+                "client_payload": {
+                  "circleci_job": "test",
+                  "status": "success",
+                  "build_url": "$CIRCLE_BUILD_URL"
+                }
+              }'
 workflows:
   version: 2
   test-on-pr:

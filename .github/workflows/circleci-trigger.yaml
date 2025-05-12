@@ -1,0 +1,14 @@
+# .github/workflows/triggered-by-circleci.yml
+name: Triggered by CircleCI
+on:
+  repository_dispatch:
+    types: [circleci_completed]
+
+jobs:
+  handle-event:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Process CircleCI completion
+        run: |
+          echo "CircleCI job completed!"
+          echo "Event payload: ${{ toJson(github.event.client_payload) }}"
