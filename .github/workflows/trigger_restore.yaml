@@ -1,17 +1,18 @@
-name: Trigger Restore on PR Merge
+name: Trigger Restore on PR Merge into Develop
+
 on:
   pull_request_target:
     types: [closed]
-    branches: [main, develop]
+    branches: [develop]
 
 jobs:
   trigger_restore:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Restore Workflow
+      - name: Trigger Restore Workflow via Dispatch
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}  # Personal Access Token with repo scope
         run: |
           BRANCH="${{ github.event.pull_request.base.ref }}"
           ESCAPED_BRANCH=$(echo "$BRANCH" | jq -R .)

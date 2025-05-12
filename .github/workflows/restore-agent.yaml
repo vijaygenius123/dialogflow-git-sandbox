@@ -1,17 +1,8 @@
 name: Restore Agent
+
 on:
   repository_dispatch:
     types: [trigger_restore]
-  workflow_dispatch:
-    inputs:
-      target_branch:
-        description: 'Branch to restore from'
-        required: true
-        default: 'main'
-        type: choice
-        options:
-          - main
-          - develop
 
 jobs:
   restore:
@@ -28,7 +19,7 @@ jobs:
       - name: Restore Agent
         run: |
           LOCATION="global"
-          BRANCH="${{ github.event.inputs.target_branch || github.event.client_payload.branch }}"
+          BRANCH="${{ github.event.client_payload.branch }}"
           curl -X POST \
             -H "Authorization: Bearer $(gcloud auth print-access-token)" \
             -H "Content-Type: application/json" \
