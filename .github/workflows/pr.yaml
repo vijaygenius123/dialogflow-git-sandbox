@@ -8,11 +8,10 @@ on:
   push:
     branches:
       - '**'
-    
+
 jobs:
   pr_workflow:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -50,14 +49,11 @@ jobs:
 
   dialogflow_restore:
     needs: pr_workflow
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && (github.base_ref == 'develop' || github.base_ref == 'main')
+    if: (github.event_name == 'pull_request' && github.event.pull_request.merged == true && (github.base_ref == 'develop' || github.base_ref == 'main')) || (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'))
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout target branch
+      - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.base_ref }}
           
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
@@ -68,29 +64,34 @@ jobs:
       - name: Determine target environment
         id: determine-env
         run: |
-          # The base_ref is the target branch we're merging into
-          if [[ "${{ github.base_ref }}" == "develop" ]]; then
+          BRANCH=""
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BRANCH="${{ github.base_ref }}"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            BRANCH="${{ github.ref }}"
+            BRANCH=${BRANCH#refs/heads/}
+          fi
+          
+          echo "Working with branch: $BRANCH"
+          
+          if [[ "$BRANCH" == "develop" ]]; then
             echo "TARGET_ENV=development" >> $GITHUB_ENV
             echo "PROJECT_ID=${{ secrets.DEV_PROJECT_ID }}" >> $GITHUB_ENV
             echo "AGENT_ID=${{ secrets.DEV_AGENT_ID }}" >> $GITHUB_ENV
             echo "LOCATION=${{ secrets.LOCATION_ID }}" >> $GITHUB_ENV
-            # We want to restore from the target branch after the merge
             echo "BRANCH=develop" >> $GITHUB_ENV
-          elif [[ "${{ github.base_ref }}" == "main" ]]; then
+          elif [[ "$BRANCH" == "main" ]]; then
             echo "TARGET_ENV=production" >> $GITHUB_ENV
             echo "PROJECT_ID=${{ secrets.PRD_PROJECT_ID }}" >> $GITHUB_ENV
             echo "AGENT_ID=${{ secrets.PRD_AGENT_ID }}" >> $GITHUB_ENV
             echo "LOCATION=${{ secrets.LOCATION_ID }}" >> $GITHUB_ENV
-            # We want to restore from the target branch after the merge
             echo "BRANCH=main" >> $GITHUB_ENV
           fi
           
       - name: Restore agent from Git branch
         run: |
-          # Wait a moment to ensure Git sync has completed
           sleep 30
           
-          # Perform the restore operation using the target branch (after merge)
           curl -X POST \
             -H "Authorization: Bearer $(gcloud auth print-access-token)" \
             -H "Content-Type: application/json" \
@@ -102,7 +103,7 @@ jobs:
             }"
             
       - name: Notify restoration status
-        if: always()
+        if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v6
         with:
           script: |
