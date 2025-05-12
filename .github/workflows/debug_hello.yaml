@@ -1,0 +1,14 @@
+name: Trigger on Push to Develop
+
+on:
+  push:
+    branches:
+      - develop  # Trigger on push to develop branch
+
+jobs:
+  hello_world:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Echo Hello World
+        run: echo "Hello from the main branch workflow!"
