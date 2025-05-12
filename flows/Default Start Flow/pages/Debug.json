@@ -1,0 +1,43 @@
+{
+  "name": "07e95b72-0c13-4543-9563-3e44be97e426",
+  "displayName": "Debug",
+  "form": {
+    "parameters": [ {
+      "displayName": "somethingelse-issue-location",
+      "required": true,
+      "entityType": "@sys.any",
+      "fillBehavior": {
+        "initialPromptFulfillment": {
+          "advancedSettings": {
+            "playbackInterruptionSettings": {
+            
+            },
+            "dtmfSettings": {
+              "useSystemEntityRule": false
+            }
+          }
+        }
+      }
+    } ]
+  },
+  "transitionRoutes": [ {
+    "condition": "$page.params.status = \"FINAL\"",
+    "triggerFulfillment": {
+      "messages": [ {
+        "text": {
+          "text": [ "$sys.func.IF(\"$session.params.somethingelse-issue-location = \\\"In a cemetry\\\"\", \"Cemetry\", \"PublicSpaces\")" ]
+        },
+        "languageCode": "en"
+      } ],
+      "advancedSettings": {
+        "playbackInterruptionSettings": {
+        
+        },
+        "dtmfSettings": {
+          "useSystemEntityRule": false
+        }
+      }
+    },
+    "name": "1536eaa0-be2a-4e1d-87ba-80bdd8769336"
+  } ]
+}
