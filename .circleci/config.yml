@@ -1,0 +1,16 @@
+version: 2.1
+
+jobs:
+  test:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          command: "echo \"Hello from CircleCI! Branch: $CIRCLE_BRANCH, PR: $CIRCLE_PULL_REQUEST\""
+
+workflows:
+  version: 2
+  test-on-pr:
+    jobs:
+      - test
