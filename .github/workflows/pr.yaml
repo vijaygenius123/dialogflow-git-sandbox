@@ -3,8 +3,7 @@ name: PR and Dialogflow CX Workflow
 on:
   pull_request:
     types: [opened, synchronize, reopened, closed, edited]
-    branches:
-      - '**'
+    branches: [develop]
   push:
     branches:
       - '**'
