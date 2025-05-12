@@ -39,7 +39,7 @@ jobs:
           curl -X POST \
             -H "Authorization: Bearer $(gcloud auth print-access-token)" \
             -H "Content-Type: application/json" \
-            "https://${LOCATION}-dialogflow.googleapis.com/v3/projects/${{ secrets.PROJECT_ID }}/locations/${LOCATION}/agents/${{ secrets.AGENT_ID }}:restore" \
+            "https://${LOCATION}-dialogflow.googleapis.com/v3/projects/${{ secrets.DEV_PROJECT_ID }}/locations/${LOCATION}/agents/${{ secrets.DEV_AGENT_ID }}:restore" \
             -d "{
               \"gitSource\": {
                 \"trackingBranch\": \"${BRANCH}\"
