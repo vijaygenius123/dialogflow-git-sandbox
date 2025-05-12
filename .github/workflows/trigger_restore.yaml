@@ -1,28 +1,31 @@
-name: Trigger Restore on PR Merge into Develop
+name: Restore Agent
 
 on:
-  pull_request_target:
-    types: [closed]
-    branches: [develop]
+  repository_dispatch:
+    types: [trigger_restore]
 
 jobs:
-  trigger_restore:
-    if: github.event.pull_request.merged == true
+  restore:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Restore Workflow via Dispatch
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}  # Personal Access Token with repo scope
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - name: Set up gcloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Restore Agent
         run: |
-          BRANCH="${{ github.event.pull_request.base.ref }}"
-          ESCAPED_BRANCH=$(echo "$BRANCH" | jq -R .)
+          LOCATION="global"
+          BRANCH="${{ github.event.client_payload.branch }}"
           curl -X POST \
-            -H "Authorization: token $GH_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${{ github.repository }}/dispatches" \
+            -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+            -H "Content-Type: application/json" \
+            "https://${LOCATION}-dialogflow.googleapis.com/v3/projects/${{ secrets.DEV_PROJECT_ID }}/locations/${LOCATION}/agents/${{ secrets.DEV_AGENT_ID }}:restore" \
             -d "{
-              \"event_type\": \"trigger_restore\",
-              \"client_payload\": {
-                \"branch\": $ESCAPED_BRANCH
+              \"gitSource\": {
+                \"trackingBranch\": \"${BRANCH}\"
               }
             }"
