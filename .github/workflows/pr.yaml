@@ -1,84 +1,43 @@
-name: Dialogflow CX Restore from Git
+name: PR Workflow
 
 on:
   pull_request:
-    types: [closed]
+    types: [opened, synchronize, reopened, closed, edited]
     branches:
-      - develop
-      - main
-
+      - '**'
+  push:
+    branches:
+      - '**'
+    
 jobs:
-  restore_from_git:
-    # Only run when a PR is merged (not just closed)
-    if: github.event.pull_request.merged == true
+  pr_workflow:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Debug branch information
-        run: |
-          echo "Base branch (target): ${{ github.base_ref }}"
-          echo "Head branch (source): ${{ github.head_ref }}"
-      
-      - name: Checkout target branch
+      - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.base_ref }}
-          
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          service_account_key: ${{ secrets.GOOGLE_CREDENTIALS }}
-          export_default_credentials: true
-          
-      - name: Determine target environment
-        id: determine-env
+
+      - name: Example Step
         run: |
-          # The base_ref is the target branch we're merging into
-          if [[ "${{ github.base_ref }}" == "develop" ]]; then
-            echo "TARGET_ENV=development" >> $GITHUB_ENV
-            echo "PROJECT_ID=${{ secrets.DEV_PROJECT_ID }}" >> $GITHUB_ENV
-            echo "AGENT_ID=${{ secrets.DEV_AGENT_ID }}" >> $GITHUB_ENV
-            echo "LOCATION=${{ secrets.LOCATION_ID }}" >> $GITHUB_ENV
-            # We want to restore from the target branch after the merge
-            echo "BRANCH=develop" >> $GITHUB_ENV
-          elif [[ "${{ github.base_ref }}" == "main" ]]; then
-            echo "TARGET_ENV=production" >> $GITHUB_ENV
-            echo "PROJECT_ID=${{ secrets.PRD_PROJECT_ID }}" >> $GITHUB_ENV
-            echo "AGENT_ID=${{ secrets.PRD_AGENT_ID }}" >> $GITHUB_ENV
-            echo "LOCATION=${{ secrets.LOCATION_ID }}" >> $GITHUB_ENV
-            # We want to restore from the target branch after the merge
-            echo "BRANCH=main" >> $GITHUB_ENV
-          fi
-          
-      - name: Restore agent from Git branch
-        run: |
-          # Wait a moment to ensure Git sync has completed
-          sleep 30
-          
-          # Perform the restore operation using the target branch (after merge)
-          curl -X POST \
-            -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-            -H "Content-Type: application/json" \
-            "https://$LOCATION-dialogflow.googleapis.com/v3/projects/$PROJECT_ID/locations/$LOCATION/agents/$AGENT_ID:restore" \
-            -d "{
-              \"gitSource\": {
-                \"trackingBranch\": \"$BRANCH\"
-              }
-            }"
-            
-      - name: Notify restoration status
+          echo "PR was created or updated"
+          echo "PR number: ${{ github.event.pull_request.number }}"
+          echo "PR title: ${{ github.event.pull_request.title }}"
+      # Add your additional workflow steps here
+      
+      - name: Notify PR status
         if: always()
         uses: actions/github-script@v6
         with:
           script: |
-            const issue_number = context.payload.pull_request.number;
-            const environment = process.env.TARGET_ENV;
-            const branch = process.env.BRANCH;
-            const message = `✅ Dialogflow CX agent has been restored from ${branch} branch to ${environment} environment after PR #${issue_number} was merged.`;
-            
-            github.rest.issues.createComment({
-              issue_number: issue_number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: message
-            });
+            if (context.payload.pull_request) {
+              const issue_number = context.payload.pull_request.number;
+              const message = `Workflow completed with status: ${context.job.status}`;
+              github.rest.issues.createComment({
+                issue_number: issue_number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: message
+              });
+            } else {
+              console.log("No pull request context available.");
+            }
