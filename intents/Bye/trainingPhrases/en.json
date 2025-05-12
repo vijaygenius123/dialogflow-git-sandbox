@@ -1,6 +1,13 @@
 {
   "trainingPhrases": [ {
     "parts": [ {
+      "text": "Good bye",
+      "auto": true
+    } ],
+    "repeatCount": 1,
+    "languageCode": "en"
+  }, {
+    "parts": [ {
       "text": "Have a good one"
     } ],
     "repeatCount": 1,
