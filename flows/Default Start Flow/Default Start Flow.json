@@ -27,6 +27,13 @@
     },
     "targetPage": "Debug",
     "name": "d6fc5179-49c4-4f97-a3df-cf69c9cfa7df"
+  }, {
+    "intent": "Test",
+    "triggerFulfillment": {
+    
+    },
+    "targetPage": "Test",
+    "name": "aa7f6e85-5bdf-4d64-8549-cfcd2e8752cf"
   } ],
   "eventHandlers": [ {
     "event": "sys.no-match-default",
@@ -58,7 +65,6 @@
   "nluSettingsList": [ {
     "modelType": "MODEL_TYPE_ADVANCED",
     "classificationThreshold": 0.30000001,
-    "customConfigKey": "56444246-facf-43c9-8ed9-bc56280231d2",
     "languageCode": "en"
   } ]
 }
