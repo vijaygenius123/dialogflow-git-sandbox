@@ -20,8 +20,7 @@
     
     },
     "targetPage": "End Session",
-    "name": "0d557472-ed6a-4ef4-9bbe-e47f6ccf0b90",
-    "description": "Bye Bye"
+    "name": "0d557472-ed6a-4ef4-9bbe-e47f6ccf0b90"
   }, {
     "intent": "Start",
     "triggerFulfillment": {
