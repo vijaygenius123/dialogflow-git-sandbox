@@ -34,7 +34,7 @@ jobs:
 
       - name: Restore Agent from Git
         run: |
-          LOCATION="us-central1"
+          LOCATION="global"
           BRANCH="${{ github.event.inputs.branch }}"
           curl -X POST \
             -H "Authorization: Bearer $(gcloud auth print-access-token)" \
