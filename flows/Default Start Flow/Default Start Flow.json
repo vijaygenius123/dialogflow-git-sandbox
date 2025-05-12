@@ -12,7 +12,8 @@
         "languageCode": "en"
       } ]
     },
-    "name": "a37432d1-df93-46bf-b738-9a7aff5f90ce"
+    "name": "a37432d1-df93-46bf-b738-9a7aff5f90ce",
+    "description": "Default "
   }, {
     "intent": "Bye",
     "triggerFulfillment": {
