@@ -1,0 +1,40 @@
+# .github/workflows/restore-agent.yml in main branch
+name: Restore Agent
+on:
+  repository_dispatch:
+    types: [trigger_restore]
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Branch to restore from'
+        required: true
+        default: 'main'
+        type: choice
+        options:
+          - main
+          - develop
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - name: Set up gcloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Restore Agent
+        run: |
+          BRANCH="${{ github.event.inputs.target_branch || github.event.client_payload.branch }}"
+          curl -X POST \
+            -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+            -H "Content-Type: application/json" \
+            "https://${{ secrets.LOCATION }}-dialogflow.googleapis.com/v3/projects/${{ secrets.PROJECT_ID }}/locations/${{ secrets.LOCATION }}/agents/${{ secrets.AGENT_ID }}:restore" \
+            -d "{
+              \"gitSource\": {
+                \"trackingBranch\": \"$BRANCH\"
+              }
+            }"
