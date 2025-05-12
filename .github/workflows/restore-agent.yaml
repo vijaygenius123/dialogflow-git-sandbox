@@ -1,4 +1,3 @@
-# .github/workflows/restore-agent.yml in main branch
 name: Restore Agent
 on:
   repository_dispatch:
@@ -28,13 +27,14 @@ jobs:
 
       - name: Restore Agent
         run: |
+          LOCATION="global"
           BRANCH="${{ github.event.inputs.target_branch || github.event.client_payload.branch }}"
           curl -X POST \
             -H "Authorization: Bearer $(gcloud auth print-access-token)" \
             -H "Content-Type: application/json" \
-            "https://${{ secrets.LOCATION }}-dialogflow.googleapis.com/v3/projects/${{ secrets.PROJECT_ID }}/locations/${{ secrets.LOCATION }}/agents/${{ secrets.AGENT_ID }}:restore" \
+            "https://${LOCATION}-dialogflow.googleapis.com/v3/projects/${{ secrets.DEV_PROJECT_ID }}/locations/${LOCATION}/agents/${{ secrets.DEV_AGENT_ID }}:restore" \
             -d "{
               \"gitSource\": {
-                \"trackingBranch\": \"$BRANCH\"
+                \"trackingBranch\": \"${BRANCH}\"
               }
             }"

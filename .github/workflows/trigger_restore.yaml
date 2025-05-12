@@ -1,7 +1,6 @@
-# .github/workflows/trigger-restore.yml in main branch
 name: Trigger Restore on PR Merge
 on:
-  pull_request:
+  pull_request_target:
     types: [closed]
     branches: [main, develop]
 
@@ -12,15 +11,17 @@ jobs:
     steps:
       - name: Trigger Restore Workflow
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}  # PAT with `repo` scope
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
+          BRANCH="${{ github.event.pull_request.base.ref }}"
+          ESCAPED_BRANCH=$(echo "$BRANCH" | jq -R .)
           curl -X POST \
             -H "Authorization: token $GH_TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/${{ github.repository }}/dispatches" \
-            -d '{
-              "event_type": "trigger_restore",
-              "client_payload": {
-                "branch": "${{ github.base_ref }}"
+            -d "{
+              \"event_type\": \"trigger_restore\",
+              \"client_payload\": {
+                \"branch\": $ESCAPED_BRANCH
               }
-            }'
+            }"
