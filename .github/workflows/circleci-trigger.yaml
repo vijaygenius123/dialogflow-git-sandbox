@@ -1,14 +1,46 @@
-# .github/workflows/triggered-by-circleci.yml
-name: Triggered by CircleCI
+name: Deploy to Dev Agent on PR Merge
+
 on:
   repository_dispatch:
-    types: [circleci_completed]
+    types: [dialogflow-pr-merged]
 
 jobs:
-  handle-event:
+  deploy_dev_agent:
     runs-on: ubuntu-latest
     steps:
-      - name: Process CircleCI completion
+      - name: Print PR info
         run: |
-          echo "CircleCI job completed!"
-          echo "Event payload: ${{ toJson(github.event.client_payload) }}"
+          echo "Repo: ${{ github.event.client_payload.source_repo }}"
+          echo "PR #: ${{ github.event.client_payload.pr_number }}"
+          echo "Base branch: ${{ github.event.client_payload.base_branch }}"
+          echo "Merge commit SHA: ${{ github.event.client_payload.merge_commit_sha }}"
+
+      # Example: Checkout code from the merged branch
+      - name: Checkout merged code
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.client_payload.source_repo }}
+          ref: ${{ github.event.client_payload.merge_commit_sha }}
+
+      # Example: Deploy to Dialogflow Dev Agent
+      - name: Deploy to Dev Agent
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          PROJECT_ID: ${{ secrets.DEV_PROJECT_ID }}
+          AGENT_ID: ${{ secrets.DEV_AGENT_ID }}
+          LOCATION: ${{ secrets.LOCATION_ID }}
+        run: |
+          # Authenticate
+          echo "$GOOGLE_CREDENTIALS" > key.json
+          gcloud auth activate-service-account --key-file=key.json
+          gcloud config set project "$PROJECT_ID"
+          # Deploy using Dialogflow CX API
+          curl -X POST \
+            -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+            -H "Content-Type: application/json" \
+            "https://${LOCATION}-dialogflow.googleapis.com/v3/projects/${PROJECT_ID}/locations/${LOCATION}/agents/${AGENT_ID}:restore" \
+            -d "{
+              \"gitSource\": {
+                \"trackingBranch\": \"${{ github.event.client_payload.base_branch }}\"
+              }
+            }"
