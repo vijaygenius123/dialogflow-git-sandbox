@@ -1,0 +1,10 @@
+{
+  "name": "5516b63e-18c6-4cd8-8fc0-078f8429abf1",
+  "displayName": "New Intent",
+  "priority": 500000,
+  "labels": [ {
+    "key": "sys-head",
+    "value": "sys-head"
+  } ],
+  "numTrainingPhrases": 2
+}
