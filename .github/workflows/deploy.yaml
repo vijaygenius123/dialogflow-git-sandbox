@@ -1,1 +1,99 @@
+name: Dialogflow CX CI/CD Pipeline
 
+on:
+  # Webhook triggers only
+  repository_dispatch:
+    types: 
+      - dialogflow-branch-updated
+      - dialogflow-pr-merged
+  
+  # Keep manual trigger for direct invocation
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment (dev/test/prod)'
+        required: true
+        default: 'dev'
+      branch:
+        description: 'Branch to deploy from'
+        required: false
+        default: 'develop'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print event information
+        run: |
+          echo "Event type: ${{ github.event_name }}"
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            echo "Dispatch type: ${{ github.event.action }}"
+            echo "Branch: ${{ github.event.client_payload.base_branch }}"
+            echo "PR number: ${{ github.event.client_payload.pr_number || 'N/A' }}"
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.client_payload.base_branch || github.event.inputs.branch || 'develop' }}
+
+      - name: Determine environment
+        id: determine-env
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # For manual triggers, use the provided inputs
+            ENVIRONMENT="${{ github.event.inputs.environment }}"
+            BRANCH="${{ github.event.inputs.branch }}"
+          else
+            # For webhook triggers, determine based on the branch
+            BRANCH="${{ github.event.client_payload.base_branch }}"
+            
+            if [[ "$BRANCH" == "main" ]]; then
+              ENVIRONMENT="prod"
+            elif [[ "$BRANCH" =~ ^release/ ]]; then
+              ENVIRONMENT="test"
+            else
+              ENVIRONMENT="dev"
+            fi
+          fi
+          
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "Deploying branch $BRANCH to $ENVIRONMENT environment"
+
+      - name: Deploy to Dialogflow Agent
+        env:
+          PROJECT_ID: ${{ secrets[format('{0}_PROJECT_ID', steps.determine-env.outputs.environment)] }}
+          AGENT_ID: ${{ secrets[format('{0}_AGENT_ID', steps.determine-env.outputs.environment)] }}
+          LOCATION: ${{ secrets.LOCATION_ID }}
+          BRANCH: ${{ steps.determine-env.outputs.branch }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: |
+          echo "$GOOGLE_CREDENTIALS" > key.json
+          gcloud auth activate-service-account --key-file=key.json
+          gcloud config set project "$PROJECT_ID"
+          
+          echo "Deploying branch $BRANCH to agent $AGENT_ID in project $PROJECT_ID"
+          curl -X POST \
+            -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+            -H "Content-Type: application/json" \
+            "https://${LOCATION}-dialogflow.googleapis.com/v3/projects/${PROJECT_ID}/locations/${LOCATION}/agents/${AGENT_ID}:restore" \
+            -d "{
+              \"gitSource\": {
+                \"trackingBranch\": \"${BRANCH}\"
+              }
+            }"
+            
+      - name: Tag production release
+        if: steps.determine-env.outputs.environment == 'prod'
+        run: |
+          VERSION=$(date +"%Y.%m.%d-%H%M")
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git tag "release-$VERSION"
+          
+          # If you have write access to the repo:
+          # git push origin "release-$VERSION"
+          
+          echo "Created tag release-$VERSION for production deployment"
