@@ -64,8 +64,8 @@ jobs:
 
       - name: Deploy to Dialogflow Agent
         env:
-          PROJECT_ID: ${{ secrets[format('{0}_PROJECT_ID', steps.determine-env.outputs.environment)] }}
-          AGENT_ID: ${{ secrets[format('{0}_AGENT_ID', steps.determine-env.outputs.environment)] }}
+          PROJECT_ID: ${{ vars[format('{0}_PROJECT_ID', steps.determine-env.outputs.environment)] }}
+          AGENT_ID: ${{ vars[format('{0}_AGENT_ID', steps.determine-env.outputs.environment)] }}
           LOCATION: ${{ secrets.LOCATION_ID }}
           BRANCH: ${{ steps.determine-env.outputs.branch }}
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
