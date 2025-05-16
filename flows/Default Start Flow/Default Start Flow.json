@@ -36,6 +36,13 @@
     },
     "targetPage": "Test",
     "name": "aa7f6e85-5bdf-4d64-8549-cfcd2e8752cf"
+  }, {
+    "intent": "Confirmation.Yes",
+    "triggerFulfillment": {
+    
+    },
+    "targetPage": "Confirm Yes Page",
+    "name": "143e8389-584f-42b8-9883-83cec88e7e62"
   } ],
   "eventHandlers": [ {
     "event": "sys.no-match-default",
